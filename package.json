@@ -1,17 +1,22 @@
 {
   "name": "fisherchain-app",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "build:web": "expo export -p web",
+    "preview:web": "npx serve dist --single",
+    "iot:simulate": "node scripts/iot-simulator.mjs",
+    "icons": "node scripts/generate-icons.cjs"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^6.5.20",
     "@react-navigation/native": "^6.1.17",
     "@react-navigation/native-stack": "^6.9.22",
+    "@supabase/supabase-js": "^2.119.2",
     "expo": "^58.0.19",
     "expo-asset": "~58.0.18",
     "expo-status-bar": "~58.0.4",

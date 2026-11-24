@@ -15,6 +15,7 @@ import { COLORS } from '../constants/theme';
 import { PRODUCTS, CATEGORIES } from '../constants/mockData';
 import ProductCard from '../components/ProductCard';
 import { useApp } from '../context/AppContext';
+import SyncBadge from '../components/SyncBadge';
 
 export default function HomeScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,6 +42,7 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.userInfo}>
             <Text style={styles.greeting}>Halo, Selamat Pagi</Text>
             <Text style={styles.userName}>Pak Budi</Text>
+            <SyncBadge />
           </View>
         </View>
         <View style={styles.headerIcons}>

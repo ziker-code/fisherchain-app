@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
@@ -13,38 +13,15 @@ import { COLORS } from '../constants/theme';
 import { useApp } from '../context/AppContext';
 
 export default function StokScreen({ navigation }) {
-  const { products } = useApp();
-  const [temperature, setTemperature] = useState(1.8);
-  const [isAlert, setIsAlert] = useState(false);
+  // Suhu dari sensor IoT live (tabel sensor_readings) atau simulasi lokal
+  const { products, temperature, isTempAlert: isAlert, sensorSource, resetTemperature } = useApp();
   const [loading, setLoading] = useState(false);
-
-  // Simulate dynamic IoT temperature updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Simulate random fluctuations
-      setTemperature(prev => {
-        const change = (Math.random() - 0.5) * 0.4;
-        const newTemp = Math.max(0.5, Math.min(5.5, Number((prev + change).toFixed(1))));
-        
-        // Trigger alert if temperature goes above 4.0°C
-        if (newTemp >= 4.0) {
-          setIsAlert(true);
-        } else {
-          setIsAlert(false);
-        }
-        return newTemp;
-      });
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   const handleRefresh = () => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      setTemperature(1.5);
-      setIsAlert(false);
+      resetTemperature();
     }, 1000);
   };
 
@@ -102,7 +79,9 @@ export default function StokScreen({ navigation }) {
             </View>
           )}
 
-          <Text style={styles.iotUpdateText}>Terakhir diperbarui: Baru saja</Text>
+          <Text style={styles.iotUpdateText}>
+            {sensorSource === 'live' ? '● Sensor live · diperbarui realtime' : 'Mode simulasi · diperbarui tiap 4 detik'}
+          </Text>
         </View>
 
         {/* Cooperative Stok List */}

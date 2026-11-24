@@ -11,9 +11,11 @@ import {
 import { ArrowLeft, Phone, Navigation, CheckCircle2, Circle } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
 import Button from '../components/Button';
+import { useApp } from '../context/AppContext';
 
 export default function LiveTrackingScreen({ route, navigation }) {
   const { orderItems = [] } = route.params || {};
+  const { orders, updateOrderStatus } = useApp();
 
   // Pick first item or default kakap
   const mainItem = orderItems.length > 0 ? orderItems[0] : {
@@ -175,6 +177,25 @@ export default function LiveTrackingScreen({ route, navigation }) {
           onPress={() => alert('Membuka WhatsApp Chat Kurir')}
           style={styles.contactBtn}
         />
+
+        {/* Konfirmasi penerimaan — status tersinkron realtime ke dashboard koperasi */}
+        {mainItem.id && (() => {
+          const live = orders.find((o) => o.id === mainItem.id);
+          const done = live?.status === 'Selesai';
+          return (
+            <Button
+              title={done ? 'Pesanan Sudah Diterima ✓' : 'Konfirmasi Pesanan Diterima'}
+              variant="outline"
+              disabled={done}
+              onPress={() => {
+                orderItems.forEach((it) => it.id && updateOrderStatus(it.id, 'Selesai'));
+                alert('Terima kasih! Status pesanan diperbarui menjadi Selesai.');
+                navigation.navigate('MainTabs', { screen: 'Pesanan' });
+              }}
+              style={{ marginTop: 10 }}
+            />
+          );
+        })()}
       </View>
     </SafeAreaView>
   );

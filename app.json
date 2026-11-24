@@ -2,8 +2,23 @@
   "expo": {
     "name": "Fisherchain.id",
     "slug": "fisherchain-id",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "light"
+    "userInterfaceStyle": "light",
+    "icon": "./public/icons/icon-512.png",
+    "splash": {
+      "image": "./src/assets/logo.jpg",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "name": "Fisherchain.id",
+      "shortName": "Fisherchain",
+      "themeColor": "#002283",
+      "backgroundColor": "#FFFFFF",
+      "favicon": "./public/icons/favicon.png"
+    }
   }
 }

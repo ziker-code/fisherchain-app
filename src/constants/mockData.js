@@ -10,6 +10,7 @@ export const PRODUCTS = [
     koperasi: 'Koperasi Nelayan Indramayu',
     verified: true,
     location: 'Karangsong, Indramayu',
+    imageKey: 'kakap',
     image: require('../assets/kakap.jpg'),
     description: 'Kakap merah segar hasil tangkapan nelayan tradisional Indramayu menggunakan alat tangkap ramah lingkungan. Langsung dibekukan dengan es kristal di pendaratan TPI.',
     nelayan: 'Nelayan Pak Ahmad',
@@ -31,6 +32,7 @@ export const PRODUCTS = [
     koperasi: 'Koperasi Mina Jaya Bali',
     verified: true,
     location: 'Benoa, Bali',
+    imageKey: 'tuna',
     image: require('../assets/tuna.jpg'),
     description: 'Tuna kualitas ekspor (Grade A) ditangkap secara perorangan (handline). Preservasi dingin ketat dari palka hingga TPI Benoa.',
     nelayan: 'Nelayan Bli Wayan',
@@ -52,6 +54,7 @@ export const PRODUCTS = [
     koperasi: 'Koperasi Nelayan Muara Angke',
     verified: false,
     location: 'Muara Angke, Jakarta',
+    imageKey: 'udang',
     image: require('../assets/udang.jpg'),
     description: 'Udang windu berukuran besar (size 20) segar tangkapan pesisir utara Jakarta. Bersih tanpa bahan pengawet kimia.',
     nelayan: 'Nelayan Pak Udin',
@@ -73,6 +76,7 @@ export const PRODUCTS = [
     koperasi: 'Koperasi Nelayan Indramayu',
     verified: true,
     location: 'Karangsong, Indramayu',
+    imageKey: 'cumi',
     image: require('../assets/cumi.jpg'),
     description: 'Cumi-cumi segar dengan tekstur kenyal dan tinta utuh. Menjaga kualitas rasa alami laut saat dimasak.',
     nelayan: 'Nelayan Pak Joko',
@@ -86,3 +90,46 @@ export const PRODUCTS = [
 ];
 
 export const CATEGORIES = ['Semua', 'Kakap', 'Tuna', 'Udang', 'Cumi'];
+
+// Harga acuan TPI (Price Intelligence) — dipakai saat Supabase belum dikonfigurasi
+export const TPI_PRICES = [
+  { category: 'Kakap', name: 'Kakap Merah', price: 78000, trend: 'up', change: '12%' },
+  { category: 'Tuna', name: 'Tuna Bluefin', price: 150000, trend: 'stable', change: '0%' },
+  { category: 'Udang', name: 'Udang Windu', price: 110000, trend: 'down', change: '-3%' },
+  { category: 'Cumi', name: 'Cumi-Cumi', price: 85000, trend: 'up', change: '8%' },
+];
+
+export const INITIAL_ORDERS = [
+  {
+    id: 'ord-101',
+    name: 'Kakap Merah Segar',
+    qty: 5,
+    unit: 'kg',
+    price: 78000,
+    koperasi: 'Koperasi Nelayan Indramayu',
+    imageKey: 'kakap',
+    image: require('../assets/kakap.jpg'),
+    status: 'Dalam Perjalanan',
+    eta: '45 menit',
+    kurir: 'Kurir Handoko',
+    date: '12 Juni 2026',
+  },
+  {
+    id: 'ord-100',
+    name: 'Tuna Bluefin Premium',
+    qty: 2,
+    unit: 'kg',
+    price: 150000,
+    koperasi: 'Koperasi Mina Jaya Bali',
+    imageKey: 'tuna',
+    image: require('../assets/tuna.jpg'),
+    status: 'Selesai',
+    date: '10 Juni 2026',
+    nelayan: 'Nelayan Bli Wayan',
+    tanggalTangkap: '10 Juni 2026',
+    tpi: 'TPI Benoa',
+    tempC: '1.5°C',
+    storageTime: '12 jam',
+    avgTemp: '1.2°C',
+  },
+];

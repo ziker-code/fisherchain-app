@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { 
   View, 
   Text, 
@@ -23,25 +23,11 @@ import {
 } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
 import { useApp } from '../context/AppContext';
+import SyncBadge from '../components/SyncBadge';
 
 export default function AdminDashboardScreen({ navigation }) {
-  const { products, orders } = useApp();
-  const [temperature, setTemperature] = useState(1.8);
-  const [isAlert, setIsAlert] = useState(false);
-
-  // Simulating IoT sensor warning on dashboard
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTemperature(prev => {
-        const change = (Math.random() - 0.5) * 0.4;
-        const newTemp = Math.max(0.5, Math.min(5.5, Number((prev + change).toFixed(1))));
-        setIsAlert(newTemp >= 4.0);
-        return newTemp;
-      });
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
+  // Data stok, pesanan & suhu IoT tersinkron realtime lewat Supabase
+  const { products, orders, temperature, isTempAlert: isAlert } = useApp();
 
   const totalStockKg = products.length * 120; // Simulated total kg
   const activeOrdersCount = orders.filter(o => o.status !== 'Selesai').length;
@@ -66,6 +52,7 @@ export default function AdminDashboardScreen({ navigation }) {
             <Calendar size={12} color={COLORS.textSecondary} />
             <Text style={styles.dateText}>12 Juni 2026</Text>
           </View>
+          <SyncBadge />
         </View>
         <TouchableOpacity 
           style={styles.bellBtn}

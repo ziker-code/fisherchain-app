@@ -11,39 +11,26 @@ import {
 import { Landmark, ArrowUpRight, TrendingUp, RefreshCw, Bell } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
 import Button from '../components/Button';
+import { useApp } from '../context/AppContext';
 
 export default function AdminPriceScreen() {
-  const [prices, setPrices] = useState([
-    { name: 'Kakap Merah', price: '78000', trend: 'up', change: '12%' },
-    { name: 'Tuna Bluefin', price: '150000', trend: 'stable', change: '0%' },
-    { name: 'Udang Windu', price: '110000', trend: 'down', change: '-3%' },
-    { name: 'Cumi-Cumi', price: '85000', trend: 'up', change: '8%' }
-  ]);
+  // Harga TPI disimpan di Supabase (tabel tpi_prices) dan tersebar realtime
+  // ke semua pembeli — harga produk di kategori yang sama ikut diperbarui.
+  const { prices, updatePrice } = useApp();
   const [editingIndex, setEditingIndex] = useState(null);
   const [newPrice, setNewPrice] = useState('');
 
   const handleUpdatePrice = (index) => {
-    if (!newPrice) return;
-    
-    const updated = [...prices];
-    const oldPrice = Number(updated[index].price);
-    const updatedVal = Number(newPrice);
-    
-    // Calculate simulated price difference/percentage
-    const diff = ((updatedVal - oldPrice) / oldPrice) * 100;
-    const changeText = diff > 0 ? `+${diff.toFixed(0)}%` : `${diff.toFixed(0)}%`;
-    const trendText = diff > 0 ? 'up' : diff < 0 ? 'down' : 'stable';
-    
-    updated[index].price = newPrice;
-    updated[index].change = changeText;
-    updated[index].trend = trendText;
+    const value = Number(newPrice);
+    if (!value || value <= 0) return;
 
-    setPrices(updated);
+    const updated = updatePrice(prices[index].category, value);
     setEditingIndex(null);
     setNewPrice('');
 
-    // Trigger WhatsApp Price Intelligence Simulator Notification
-    alert(`Harga TPI ${updated[index].name} berhasil diperbarui menjadi Rp ${Number(newPrice).toLocaleString('id-ID')}/kg. Notifikasi otomatis terkirim ke WhatsApp Nelayan!`);
+    if (updated) {
+      alert(`Harga TPI ${updated.name} berhasil diperbarui menjadi Rp ${value.toLocaleString('id-ID')}/kg. Notifikasi otomatis terkirim ke WhatsApp Nelayan!`);
+    }
   };
 
   return (
@@ -59,7 +46,7 @@ export default function AdminPriceScreen() {
           <Text style={styles.cardSub}>Update harga harian per komoditas ikan</Text>
 
           {prices.map((item, idx) => (
-            <View style={styles.priceRow} key={idx}>
+            <View style={styles.priceRow} key={item.category}>
               <View style={styles.left}>
                 <Text style={styles.fishName}>{item.name}</Text>
                 <View style={styles.trendIndicator}>
@@ -82,7 +69,7 @@ export default function AdminPriceScreen() {
                       keyboardType="numeric"
                       value={newPrice}
                       onChangeText={setNewPrice}
-                      placeholder={item.price}
+                      placeholder={String(item.price)}
                     />
                     <TouchableOpacity 
                       style={styles.saveBtn}
@@ -100,7 +87,7 @@ export default function AdminPriceScreen() {
                       style={styles.editBtn}
                       onPress={() => {
                         setEditingIndex(idx);
-                        setNewPrice(item.price);
+                        setNewPrice(String(item.price));
                       }}
                     >
                       <Text style={styles.editBtnText}>Ubah</Text>
