@@ -60,7 +60,16 @@ Dokumen kebutuhan produk lengkap ada di [`docs/PRD.md`](docs/PRD.md).
 | Harga TPI | `tpi_prices` | Admin ubah harga Kakap → harga di katalog semua pembeli berubah |
 | Suhu cold storage | `sensor_readings` | Sensor/simulator kirim suhu → semua layar IoT ikut berubah, alert bila ≥ 4°C |
 
-Jika Supabase belum dikonfigurasi, aplikasi otomatis berjalan dalam **Mode Demo** (data lokal), sehingga tetap bisa dicoba tanpa backend. Status koneksi terlihat dari badge kecil di Beranda/Dashboard: `Realtime`, `Menghubungkan`, `Offline`, atau `Mode Demo`.
+### Mode Demo (tanpa backend) — versi yang sedang di-deploy
+
+Jika Supabase belum dikonfigurasi, aplikasi otomatis berjalan dalam **Mode Demo**:
+
+- **Data tersimpan di browser** (`localStorage`): pesanan, stok baru dari bot WA, dan harga TPI tidak hilang saat halaman di-refresh atau PWA ditutup.
+- **Sinkron realtime antar tab** di perangkat yang sama: buka dua tab/jendela — satu sebagai *Admin Koperasi*, satu sebagai *Pembeli* — lalu ubah harga atau buat pesanan; tab lain langsung ikut berubah. Suhu sensor IoT simulasi juga sama di semua tab.
+- **Reset Data Demo** tersedia di menu *Profil* untuk mengembalikan data ke kondisi awal (berlaku di semua tab).
+- Batasan: data tidak tersinkron antar perangkat berbeda (mis. HP ke laptop). Untuk itu, aktifkan Supabase.
+
+Status koneksi terlihat dari badge kecil di Beranda/Dashboard: `Realtime`, `Menghubungkan`, `Offline`, atau `Demo · Sinkron Tab`.
 
 ## Tampilan
 
@@ -114,7 +123,7 @@ fisherchain.id/
 │   ├── components/           # Button, Header, ProductCard, StatusSteps, SyncBadge, WebFrame
 │   ├── constants/            # theme.js, mockData.js (data demo/fallback)
 │   ├── context/AppContext.js # State global + sinkronisasi realtime
-│   ├── lib/                  # supabase.js (client), pwa.js (registrasi SW)
+│   ├── lib/                  # supabase.js (client), pwa.js (SW), localStore.js (Mode Demo)
 │   ├── navigation/           # AppNavigator (stack + tab pembeli/admin)
 │   ├── screens/              # Semua layar aplikasi
 │   └── services/api.js       # Query, mutasi & langganan Supabase

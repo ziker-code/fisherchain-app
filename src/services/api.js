@@ -9,7 +9,7 @@ const IMAGES = {
   cumi: require('../assets/cumi.jpg'),
 };
 
-const resolveImage = (key, url) => url || IMAGES[key] || IMAGES.kakap;
+export const resolveImage = (key, url) => url || IMAGES[key] || IMAGES.kakap;
 
 // ---------- Mapping baris DB (snake_case) <-> objek aplikasi (camelCase) ----------
 

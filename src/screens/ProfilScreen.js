@@ -6,12 +6,12 @@ import {
   TouchableOpacity, 
   SafeAreaView 
 } from 'react-native';
-import { User, MessageSquareCode, ShieldCheck, MapPin, ChevronRight, LogOut, Settings } from 'lucide-react-native';
+import { User, MessageSquareCode, ShieldCheck, MapPin, ChevronRight, LogOut, Settings, RotateCcw } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
 import { useApp } from '../context/AppContext';
 
 export default function ProfilScreen({ navigation }) {
-  const { activeRole } = useApp();
+  const { activeRole, resetDemoData, isDemoPersistent } = useApp();
   const isAdmin = activeRole === 'admin';
 
   return (
@@ -57,6 +57,23 @@ export default function ProfilScreen({ navigation }) {
           {isAdmin && (
             <TouchableOpacity style={styles.menuItem} onPress={() => alert('Manajemen IoT')}>
               <Text style={styles.menuText}>Kalibrasi Sensor IoT Cold Storage</Text>
+              <ChevronRight size={16} color={COLORS.textSecondary} />
+            </TouchableOpacity>
+          )}
+
+          {isDemoPersistent && (
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                resetDemoData();
+                alert('Data demo dikembalikan ke kondisi awal di semua tab.');
+              }}
+              activeOpacity={0.8}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <RotateCcw size={16} color={COLORS.textSecondary} style={{ marginRight: 8 }} />
+                <Text style={styles.menuText}>Reset Data Demo</Text>
+              </View>
               <ChevronRight size={16} color={COLORS.textSecondary} />
             </TouchableOpacity>
           )}

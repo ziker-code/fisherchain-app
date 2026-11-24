@@ -11,12 +11,39 @@ import {
   mapProduct,
   mapOrder,
   mapPrice,
+  resolveImage,
 } from '../services/api';
+import {
+  isLocalStoreAvailable,
+  loadLocal,
+  saveLocal,
+  clearLocal,
+  subscribeLocal,
+} from '../lib/localStore';
 
 const AppContext = createContext();
 
 const ALERT_THRESHOLD_C = 4.0;
 const LIVE_SENSOR_TIMEOUT_MS = 15000;
+// Di Mode Demo, satu tab menjadi "sensor" dan tab lain mengikuti nilainya.
+const DEMO_SENSOR_FOLLOW_MS = 6000;
+
+// Mode Demo tersimpan: tanpa Supabase, data disimpan di localStorage
+// dan disinkronkan antar tab di perangkat yang sama.
+const useLocalPersistence = !isSupabaseConfigured && isLocalStoreAvailable;
+
+// `image` hasil require() tidak bisa di-serialize; simpan hanya URL string,
+// lalu pulihkan dari imageKey saat dimuat.
+const serializeItems = (items) =>
+  items.map(({ image, ...rest }) => (typeof image === 'string' ? { ...rest, image } : rest));
+const deserializeItems = (items) =>
+  items.map((item) => ({ ...item, image: resolveImage(item.imageKey, item.image) }));
+
+const loadItems = (key, fallback) => {
+  if (!useLocalPersistence) return fallback;
+  const saved = loadLocal(key, null);
+  return Array.isArray(saved) ? deserializeItems(saved) : fallback;
+};
 
 // Gabungkan perubahan realtime ke list: INSERT/UPDATE = upsert, DELETE = hapus.
 function applyChange(list, payload, mapper, key = 'id') {
@@ -35,9 +62,11 @@ const newId = (prefix) => `${prefix}-${Date.now()}-${Math.floor(Math.random() * 
 
 export function AppProvider({ children }) {
   const [activeRole, setActiveRole] = useState('buyer'); // 'buyer' | 'admin'
-  const [products, setProducts] = useState(PRODUCTS);
-  const [orders, setOrders] = useState(INITIAL_ORDERS);
-  const [prices, setPrices] = useState(TPI_PRICES);
+  const [products, setProducts] = useState(() => loadItems('products', PRODUCTS));
+  const [orders, setOrders] = useState(() => loadItems('orders', INITIAL_ORDERS));
+  const [prices, setPrices] = useState(() =>
+    useLocalPersistence ? loadLocal('prices', TPI_PRICES) : TPI_PRICES
+  );
   const [cartItems, setCartItems] = useState([]);
 
   // 'demo' = data lokal (Supabase belum diset), 'connecting', 'live', 'error'
@@ -45,9 +74,64 @@ export function AppProvider({ children }) {
 
   // Sensor suhu cold storage (IoT). Data live dari tabel sensor_readings,
   // fallback ke simulasi lokal bila tidak ada data masuk.
-  const [temperature, setTemperature] = useState(1.8);
+  const [temperature, setTemperature] = useState(() =>
+    useLocalPersistence ? loadLocal('sensor', { t: 1.8 }).t : 1.8
+  );
   const [sensorSource, setSensorSource] = useState('simulasi'); // 'live' | 'simulasi'
   const lastLiveReadingAt = useRef(0);
+  const lastTabReadingAt = useRef(0);
+
+  // ---------- Mode Demo: simpan ke localStorage & sinkron antar tab ----------
+  // Penanda agar data yang baru diterima dari tab lain tidak ditulis ulang.
+  const fromOtherTab = useRef({ products: false, orders: false, prices: false });
+
+  const usePersist = (key, value, serialize = (v) => v) => {
+    useEffect(() => {
+      if (!useLocalPersistence) return;
+      if (fromOtherTab.current[key]) {
+        fromOtherTab.current[key] = false;
+        return;
+      }
+      saveLocal(key, serialize(value));
+    }, [value]);
+  };
+  usePersist('products', products, serializeItems);
+  usePersist('orders', orders, serializeItems);
+  usePersist('prices', prices);
+
+  const publishTemperature = (t) => {
+    setTemperature(t);
+    if (useLocalPersistence) saveLocal('sensor', { t, at: Date.now() });
+  };
+
+  useEffect(() => {
+    if (!useLocalPersistence) return undefined;
+    return subscribeLocal((key, value) => {
+      if (key === 'sensor') {
+        if (value) {
+          lastTabReadingAt.current = Date.now();
+          setTemperature(value.t);
+        }
+        return;
+      }
+      const setters = { products: setProducts, orders: setOrders, prices: setPrices };
+      const defaults = { products: PRODUCTS, orders: INITIAL_ORDERS, prices: TPI_PRICES };
+      if (!setters[key]) return;
+      fromOtherTab.current[key] = true;
+      if (value === null) setters[key](defaults[key]);
+      else setters[key](key === 'prices' ? value : deserializeItems(value));
+    });
+  }, []);
+
+  // Kembalikan data demo ke kondisi awal (di semua tab).
+  const resetDemoData = () => {
+    clearLocal();
+    setProducts(PRODUCTS);
+    setOrders(INITIAL_ORDERS);
+    setPrices(TPI_PRICES);
+    setCartItems([]);
+    publishTemperature(1.8);
+  };
 
   const applyReading = useCallback((row) => {
     if (!row) return;
@@ -103,16 +187,20 @@ export function AppProvider({ children }) {
     const interval = setInterval(() => {
       if (Date.now() - lastLiveReadingAt.current < LIVE_SENSOR_TIMEOUT_MS) return;
       setSensorSource('simulasi');
+      // Tab lain sedang menjadi "sensor" → ikuti nilainya saja
+      if (Date.now() - lastTabReadingAt.current < DEMO_SENSOR_FOLLOW_MS) return;
       setTemperature((prev) => {
         const change = (Math.random() - 0.5) * 0.4;
-        return Math.max(0.5, Math.min(5.5, Number((prev + change).toFixed(1))));
+        const next = Math.max(0.5, Math.min(5.5, Number((prev + change).toFixed(1))));
+        if (useLocalPersistence) saveLocal('sensor', { t: next, at: Date.now() });
+        return next;
       });
     }, 4000);
     return () => clearInterval(interval);
   }, []);
 
   const resetTemperature = () => {
-    if (sensorSource === 'simulasi') setTemperature(1.5);
+    if (sensorSource === 'simulasi') publishTemperature(1.5);
   };
 
   const reportError = (action) => (err) => {
@@ -222,6 +310,8 @@ export function AppProvider({ children }) {
         isTempAlert: temperature >= ALERT_THRESHOLD_C,
         sensorSource,
         resetTemperature,
+        resetDemoData,
+        isDemoPersistent: useLocalPersistence,
       }}
     >
       {children}
